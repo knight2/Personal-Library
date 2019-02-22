@@ -24,6 +24,20 @@ module.exports = function (app) {
     
     .post(function (req, res){
       var title = req.body.title;
+      if (!title){
+        res.send('missing title');
+      }
+    MongoClient.connect(process.env.DB, function(err, client){
+     if (err) throw err;
+      
+     var database = client.db('books');
+      var doc = {title: title, comments:[]};
+      database.collection('books').insert(doc, {w:1}, function(err, result){
+        if (err){console.log('err')}
+          console.log(result);
+        res.json(result.ops[0]);
+      });
+    });
       //response will contain new book object including atleast _id and title
     })
     
