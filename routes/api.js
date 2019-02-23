@@ -17,10 +17,24 @@ const MONGODB_CONNECTION_STRING = process.env.DB;
 module.exports = function (app) {
 
   app.route('/api/books')
-    .get(function (req, res){
-      //response will be array of book objects
-      //json res format: [{"_id": bookid, "title": book_title, "commentcount": num_of_comments },...]
-    })
+  .get(function (req, res){
+    //response will be array of book objects
+    //json res format: [{"_id": bookid, "title": book_title, "commentcount": num_of_comments },...]
+      MongoClient.connect(process.env.DB, function(err, client){
+        if (err) throw err;
+       var database = client.db('books');
+    database.collection('books').find().toArray(function(err, result){
+      if (err){console.log('err')}
+      
+      for (var i = 0; i < result.length; i++){
+          result[i].commentcount = result[i].comments.length;
+          delete result[i].comments;
+      }
+      res.json(result);
+    });
+      });
+  })
+
     
     .post(function (req, res){
       var title = req.body.title;
