@@ -62,10 +62,27 @@ module.exports = function (app) {
 
 
   app.route('/api/books/:id')
-    .get(function (req, res){
-      var bookid = req.params.id;
-      //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
-    })
+  .get(function (req, res){
+    var bookid = req.params.id;
+    //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
+    
+   var oid = new ObjectId(bookid); //convert to mongo object id to search database
+  
+   MongoClient.connect(process.env.DB, function(err, client){
+     if (err) throw err;
+     
+     var database = client.db('books');
+     database.collection('books').find({_id: oid}).toArray(function(err, result){
+     if (err) {console.log(err)};
+       
+       if (result.length == 0){
+         res.send('no book exists');
+       } else{
+         res.json(result[0])
+       }
+     });
+   });
+  })
     
     .post(function(req, res){
       var bookid = req.params.id;
