@@ -36,16 +36,33 @@ suite('Functional Tests', function() {
   */
 
   suite('Routing tests', function() {
-
-
+    var testid;
+    
     suite('POST /api/books with title => create book object/expect book object', function() {
       
       test('Test POST /api/books with title', function(done) {
-        //done();
+        chai.request(server)
+        .post('/api/books/')
+        .send({title: 'Testing book'})
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.property(res.body, 'comments', 'Book should contain comments');
+          assert.isArray(res.body.comments, 'comments should be array');
+          assert.property(res.body, 'title', 'Book should contain title');
+          assert.property(res.body, '_id', 'book should contain _id');
+          assert.equal(res.body.title, 'Testing book');
+          done();
+        });
       });
       
-      test('Test POST /api/books with no title given', function(done) {
-        //done();
+      test('Test POST /api/books with no title', function(done) {
+         chai.request(server)
+          .post('/api/books')
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.equal(res.text, 'missing title');
+          done();
+        });
       });
       
     });
@@ -54,20 +71,46 @@ suite('Functional Tests', function() {
     suite('GET /api/books => array of books', function(){
       
       test('Test GET /api/books',  function(done){
-        //done();
-      });      
+        chai.request(server)
+        .get('/api/books')
+        .end(function(err, res){
+        assert.equal(res.status, 200);
+          assert.isArray(res.body, 'response should be array');
+          assert.property(res.body[0], 'commentcount', 'should contain comment count');
+          assert.property(res.body[0], 'title', 'should contain title')
+          assert.property(res.body[0], '_id', 'should contain id');
+          testid = res.body[0]._id;
+          done();
+        });
+      });       
       
     });
 
 
     suite('GET /api/books/[id] => book object with [id]', function(){
       
-      test('Test GET /api/books/[id] with id not in db',  function(done){
-        //done();
+      test('Test GET /api/books/[id] with valid id in db',  function(done){
+        chai.request(server)
+          .get('/api/books/'+testid)
+        .end(function(err, res){
+            assert.equal(res.status, 200);
+            assert.property(res.body, 'comments', 'Book should contain comments');
+            assert.isArray(res.body.comments, 'Comments should be an array');
+            assert.property(res.body, 'title', 'Book should contain title');
+            assert.property(res.body, '_id', 'Book should contain _id');
+            assert.equal(res.body._id, testid);
+            done();
+        });
       });
       
-      test('Test GET /api/books/[id] with valid id in db',  function(done){
-        //done();
+      test('Test GET /api/books/[id] with unknown id',  function(done){
+        chai.request(server)
+        .get('/api/books/123412341234')
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.equal(res.text, 'no book exists');
+          done();
+        });
       });
       
     });
@@ -76,8 +119,18 @@ suite('Functional Tests', function() {
     suite('POST /api/books/[id] => add comment/expect book object with id', function(){
       
       test('Test POST /api/books/[id] with comment', function(done){
-        //done();
-      });
+         chai.request(server)
+          .post('/api/books/'+testid)
+          .send({comment: 'test comment'})
+          .end(function(err, res){
+            assert.equal(res.status, 200);
+            assert.property(res.body, 'comments', 'Book should contain comments');
+            assert.isArray(res.body.comments, 'Comments should be an array');
+            assert.include(res.body.comments, 'test comment', 'Comments should include test comment submitted');
+            assert.property(res.body, 'title', 'Book should contain title');
+            assert.property(res.body, '_id', 'Book should contain _id');
+            done();
+          });               });
       
     });
 
