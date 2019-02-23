@@ -84,11 +84,28 @@ module.exports = function (app) {
    });
   })
     
-    .post(function(req, res){
-      var bookid = req.params.id;
-      var comment = req.body.comment;
-      //json res format same as .get
-    })
+  .post(function(req, res){
+    var bookid = req.params.id;
+    var comment = req.body.comment;
+    var oid = new ObjectId(bookid); //convert to mongo obj id 
+    //json res format same as .get
+  
+  MongoClient.connect(process.env.DB, function(err, client){
+  if (err) throw err;
+    
+    var database = client.db('books');
+    database.collection('books').findAndModify(
+      {_id: oid},
+      {},
+      {$push: {comments: comment}},
+      {new: true, upsert: false},
+      function(err, result){
+        if (err) {console.log(err)};
+        res.json(result.value);
+      }
+      );
+  });
+  })
     
     .delete(function(req, res){
       var bookid = req.params.id;
