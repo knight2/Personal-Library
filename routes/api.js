@@ -107,9 +107,17 @@ module.exports = function (app) {
   });
   })
     
-    .delete(function(req, res){
-      var bookid = req.params.id;
-      //if successful response will be 'delete successful'
+  .delete(function(req, res){
+    var bookid = req.params.id;
+    var oid = new ObjectId(bookid); //convert to mongo obj id 
+    //if successful response will be 'delete successful'
+  MongoClient.connect(process.env.DB, function(err, client){
+  if (err) throw err;
+    var database = client.db('books');
+    database.collection('books').findOneAndDelete({_id: oid}, function(err, result){
+    if (err) {console.log(err)}
+      res.send('delete successful');
     });
-  
+  });
+  });
 };
